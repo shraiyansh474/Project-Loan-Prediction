@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<title>Loan Prediction Result</title>
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Segoe UI;
+}
+
+/* Background */
+
+body{
+background:linear-gradient(135deg,#020617,#0f172a,#020617);
+background-size:400% 400%;
+animation:bgMove 10s infinite alternate;
+color:white;
+display:flex;
+justify-content:center;
+align-items:center;
+height:100vh;
+overflow:hidden;
+}
+
+@keyframes bgMove{
+0%{background-position:0% 50%}
+50%{background-position:100% 50%}
+100%{background-position:0% 50%}
+}
+
+/* Particles */
+
+#particles-js{
+position:fixed;
+width:100%;
+height:100%;
+top:0;
+left:0;
+z-index:-1;
+}
+
+/* Card */
+
+.card{
+background:rgba(2,6,23,0.75);
+backdrop-filter:blur(14px);
+padding:45px;
+border-radius:14px;
+text-align:center;
+width:480px;
+box-shadow:0 25px 60px rgba(0,0,0,0.7);
+animation:fadeIn 1s ease;
+border:1px solid rgba(255,255,255,0.05);
+}
+
+@keyframes fadeIn{
+from{opacity:0; transform:translateY(30px);}
+to{opacity:1; transform:translateY(0);}
+}
+
+/* Heading */
+
+h1{
+color:#38bdf8;
+margin-bottom:10px;
+letter-spacing:1px;
+}
+
+h2{
+margin-top:10px;
+font-size:24px;
+}
+
+/* Probability text */
+
+.prob{
+margin-top:10px;
+color:#cbd5f5;
+font-size:15px;
+}
+
+/* Percentage Counter */
+
+.percent{
+font-size:28px;
+font-weight:bold;
+margin-top:5px;
+color:#38bdf8;
+}
+
+/* Progress Bar */
+
+.bar{
+margin-top:20px;
+height:16px;
+background:#1e293b;
+border-radius:20px;
+overflow:hidden;
+}
+
+.bar span{
+display:block;
+height:100%;
+background:linear-gradient(90deg,#38bdf8,#0ea5e9,#22c55e);
+background-size:200% 200%;
+animation:barMove 3s linear infinite;
+width:0%;
+transition:1.3s;
+}
+
+@keyframes barMove{
+0%{background-position:0%}
+100%{background-position:200%}
+}
+
+/* Recommendation Badge */
+
+.recommend{
+margin-top:18px;
+padding:10px 15px;
+border-radius:8px;
+font-size:15px;
+font-weight:bold;
+display:inline-block;
+}
+
+/* Chart */
+
+.chart-box{
+margin-top:30px;
+}
+
+/* Button */
+
+a{
+display:inline-block;
+margin-top:30px;
+padding:12px 30px;
+background:linear-gradient(45deg,#38bdf8,#0ea5e9);
+color:white;
+text-decoration:none;
+border-radius:8px;
+transition:0.3s;
+font-weight:500;
+}
+
+a:hover{
+transform:scale(1.08);
+box-shadow:0 0 25px rgba(56,189,248,0.7);
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div id="particles-js"></div>
+
+<div class="card">
+
+<h1>Loan Prediction Result</h1>
+
+<h2>{{ prediction_text }}</h2>
+
+<p class="prob">
+Default Probability
+</p>
+
+<div class="percent" id="percentValue">0%</div>
+
+<!-- Progress Bar -->
+
+<div class="bar">
+<span id="prob"></span>
+</div>
+
+<!-- Recommendation -->
+
+<div id="recommendation" class="recommend"></div>
+
+<!-- Explanation -->
+
+<div id="explanation" style="
+margin-top:15px;
+font-size:14px;
+color:#cbd5f5;
+line-height:1.6;
+"></div>
+
+<!-- Suggestion -->
+
+<div id="suggestion" style="
+margin-top:10px;
+font-size:13px;
+color:#94a3b8;
+line-height:1.6;
+"></div>
+
+<!-- Chart -->
+
+<div class="chart-box">
+<canvas id="predictionChart"></canvas>
+</div>
+
+<a href="/">Run New Prediction</a>
+
+</div>
+
+<!-- Particles -->
+
+<script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+
+<script>
+
+particlesJS("particles-js",{
+
+particles:{
+number:{value:60,density:{enable:true,value_area:800}},
+color:{value:"#38bdf8"},
+shape:{type:"circle"},
+opacity:{value:0.5},
+size:{value:3},
+line_linked:{enable:true,distance:150,color:"#38bdf8",opacity:0.4,width:1},
+move:{enable:true,speed:2}
+},
+
+interactivity:{
+events:{onhover:{enable:true,mode:"grab"}},
+modes:{grab:{distance:140,line_linked:{opacity:1}}}
+},
+
+retina_detect:true
+
+})
+
+</script>
+
+<!-- Chart.js -->
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+
+let probability = parseFloat("{{ probability }}") * 100;
+
+/* Progress bar */
+
+setTimeout(function(){
+document.getElementById("prob").style.width = probability + "%";
+},300);
+
+/* Animated percentage */
+
+let counter = 0;
+let percentDisplay = document.getElementById("percentValue");
+
+let interval = setInterval(function(){
+
+counter++;
+
+percentDisplay.innerText = counter + "%";
+
+if(counter >= probability){
+clearInterval(interval);
+}
+
+},20);
+
+/* Recommendation Logic */
+
+let recText = "";
+let recColor = "";
+
+if(probability < 30){
+recText = "Low Risk — Loan Recommended";
+recColor = "#22c55e";
+}
+
+else if(probability < 60){
+recText = "Medium Risk — Manual Review Required";
+recColor = "#facc15";
+}
+
+else{
+recText = "High Risk — Loan Not Recommended";
+recColor = "#ef4444";
+}
+
+let recDiv = document.getElementById("recommendation");
+recDiv.innerText = recText;
+recDiv.style.background = recColor;
+
+/* ============================= */
+/* EXPLANATION + SUGGESTION LOGIC */
+/* ============================= */
+
+let explanation = "";
+let suggestion = "";
+
+/* LOW RISK */
+if(probability < 30){
+
+explanation = "Your loan is approved because your overall financial profile is strong. "
++ "The model predicts low default risk based on stable income, good credit behavior, and balanced loan amount.";
+
+suggestion = "Keep maintaining your credit score, avoid unnecessary loans, and continue timely repayments to stay in this low-risk category.";
+
+}
+
+/* MEDIUM RISK */
+else if(probability < 60){
+
+explanation = "Your profile shows moderate risk. Some factors like credit score, income level, or debt ratio may not be ideal.";
+
+suggestion = "Try improving your credit score, reduce existing debts, and increase income stability to improve approval chances.";
+
+}
+
+/* HIGH RISK */
+else{
+
+explanation = "Your loan is rejected because the model detected high default risk. "
++ "This may be due to low credit score, high debt-to-income ratio, or insufficient income.";
+
+suggestion = "Improve your credit score (above 700), reduce your debts, maintain stable income, and avoid applying for high loan amounts.";
+
+}
+
+/* SET TEXT */
+
+document.getElementById("explanation").innerText = explanation;
+document.getElementById("suggestion").innerText = "Suggestion: " + suggestion;
+
+/* Chart */
+
+const ctx = document.getElementById("predictionChart");
+
+new Chart(ctx,{
+type:"doughnut",
+data:{
+labels:["Default Risk","Safe"],
+datasets:[{
+data:[probability,100-probability],
+backgroundColor:["#ef4444","#22c55e"],
+borderWidth:0
+}]
+},
+options:{
+plugins:{
+legend:{
+labels:{color:"white"}
+}
+}
+}
+});
+
+</script>
+
+</body>
+
+</html>
